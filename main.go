@@ -6,7 +6,10 @@ import (
 
 func main() {
 
-	// TODO move to interface
+	fetchMetrics()
+}
+
+func fetchMetrics() {
 
 	// CF Summary
 	dataComponents := getCfComponents("https://www.cloudflarestatus.com/api/v2/summary.json")

@@ -132,8 +132,14 @@ func main() {
 	fmt.Println(cfUnresolve)
 
 	// CF Upcoming Schedules
-	cfUpcomingScedules := getCfUpcomingSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
-	fmt.Println(cfUpcomingSchedules)
+	cfUpcomingSchedules := getCfUpcomingSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
+
+	for _, schedules := range cfUpcomingSchedules.ScheduledMaintenances {
+
+		for _, incidentupdates := range schedules.IncidentUpdates {
+			fmt.Printf("%s | %s \n", incidentupdates.Body, incidentupdates.Status)
+		}
+	}
 
 }
 
@@ -206,7 +212,7 @@ func getCfUnresolve(url string) CfUnresolve {
 
 }
 
-func getCfUpcomingSchedule(url string) CfUpcomingSchedules {
+func getCfUpcomingSchedules(url string) CfUpcomingSchedules {
 
 	res, err := http.Get(url)
 
@@ -218,7 +224,7 @@ func getCfUpcomingSchedule(url string) CfUpcomingSchedules {
 
 	defer res.Body.Close()
 
-	var cfupcomingschedules CfUpComingSchedules
+	var cfupcomingschedules CfUpcomingSchedules
 
 	body, err := ioutil.ReadAll(res.Body)
 

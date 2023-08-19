@@ -79,6 +79,38 @@ type CfUnresolve struct {
 	} `json:"incidents"`
 }
 
+type CfUpcomingSchedules struct {
+	Page struct {
+		ID        string    `json:"id"`
+		Name      string    `json:"name"`
+		URL       string    `json:"url"`
+		UpdatedAt time.Time `json:"updated_at"`
+	} `json:"page"`
+	ScheduledMaintenances []struct {
+		CreatedAt       string `json:"created_at"`
+		ID              string `json:"id"`
+		Impact          string `json:"impact"`
+		IncidentUpdates []struct {
+			Body       string `json:"body"`
+			CreatedAt  string `json:"created_at"`
+			DisplayAt  string `json:"display_at"`
+			ID         string `json:"id"`
+			IncidentID string `json:"incident_id"`
+			Status     string `json:"status"`
+			UpdatedAt  string `json:"updated_at"`
+		} `json:"incident_updates"`
+		MonitoringAt   any    `json:"monitoring_at"`
+		Name           string `json:"name"`
+		PageID         string `json:"page_id"`
+		ResolvedAt     any    `json:"resolved_at"`
+		ScheduledFor   string `json:"scheduled_for"`
+		ScheduledUntil string `json:"scheduled_until"`
+		Shortlink      string `json:"shortlink"`
+		Status         string `json:"status"`
+		UpdatedAt      string `json:"updated_at"`
+	} `json:"scheduled_maintenances"`
+}
+
 func main() {
 
 	// TODO move to interface
@@ -98,6 +130,10 @@ func main() {
 	// CF Unresolve
 	cfUnresolve := getCfUnresolve("https://www.cloudflarestatus.com/api/v2/incidents/unresolved.json")
 	fmt.Println(cfUnresolve)
+
+	// CF Upcoming Schedules
+	cfUpcomingScedules := getCfUpcomingSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
+	fmt.Println(cfUpcomingSchedules)
 
 }
 
@@ -168,4 +204,27 @@ func getCfUnresolve(url string) CfUnresolve {
 
 	return cfunresolve
 
+}
+
+func getCfUpcomingSchedule(url string) CfUpcomingSchedules {
+
+	res, err := http.Get(url)
+
+	if err != nil {
+
+		fmt.Println("failed to scrape endpoint")
+
+	}
+
+	defer res.Body.Close()
+
+	var cfupcomingschedules CfUpComingSchedules
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	if err := json.Unmarshal(body, &cfupcomingschedules); err != nil {
+		fmt.Println("Failed to unmarshal JSON")
+	}
+
+	return cfupcomingschedules
 }

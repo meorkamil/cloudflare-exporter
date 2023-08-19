@@ -3,3 +3,6 @@ build:
 
 run: build
 	./bin/app
+
+clean:
+	rm -rf ./bin

@@ -2,36 +2,46 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func main() {
 
-	// TODO move to interface
+	fetchMetrics(10)
+}
 
-	// CF Summary
-	dataComponents := getCfComponents("https://www.cloudflarestatus.com/api/v2/summary.json")
+func fetchMetrics(interval int) {
 
-	for _, component := range dataComponents.Components {
+	for {
 
-		fmt.Printf("%s |  %s\n", component.Name, component.Status)
-	}
+		// CF Summary
+		dataComponents := getCfComponents("https://www.cloudflarestatus.com/api/v2/summary.json")
 
-	// CF Status
-	cfStatus := getCfStatus("https://www.cloudflarestatus.com/api/v2/status.json")
-	fmt.Println(cfStatus.Status.Indicator)
+		for _, component := range dataComponents.Components {
 
-	// CF Unresolve
-	cfUnresolve := getCfUnresolve("https://www.cloudflarestatus.com/api/v2/incidents/unresolved.json")
-	fmt.Println(cfUnresolve)
-
-	// CF Schedules
-	cfSchedules := getCfSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
-
-	for _, schedules := range cfSchedules.ScheduledMaintenances {
-
-		for _, incidentupdates := range schedules.IncidentUpdates {
-			fmt.Printf("%s | %s \n", incidentupdates.Body, incidentupdates.Status)
+			fmt.Printf("%s |  %s\n", component.Name, component.Status)
 		}
+
+		// CF Status
+		cfStatus := getCfStatus("https://www.cloudflarestatus.com/api/v2/status.json")
+		fmt.Println(cfStatus.Status.Indicator)
+
+		// CF Unresolve
+		cfUnresolve := getCfUnresolve("https://www.cloudflarestatus.com/api/v2/incidents/unresolved.json")
+		fmt.Println(cfUnresolve)
+
+		// CF Schedules
+		cfSchedules := getCfSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
+
+		for _, schedules := range cfSchedules.ScheduledMaintenances {
+
+			for _, incidentupdates := range schedules.IncidentUpdates {
+				fmt.Printf("%s | %s \n", incidentupdates.Body, incidentupdates.Status)
+			}
+		}
+
+		time.Sleep(time.Millisecond * 1000)
+
 	}
 
 }

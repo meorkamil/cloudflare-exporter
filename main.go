@@ -49,6 +49,36 @@ type CfStatus struct {
 	} `json:"status"`
 }
 
+type CfUnresolve struct {
+	Page struct {
+		ID        string    `json:"id"`
+		Name      string    `json:"name"`
+		URL       string    `json:"url"`
+		UpdatedAt time.Time `json:"updated_at"`
+	} `json:"page"`
+	Incidents []struct {
+		CreatedAt       string `json:"created_at"`
+		ID              string `json:"id"`
+		Impact          string `json:"impact"`
+		IncidentUpdates []struct {
+			Body       string `json:"body"`
+			CreatedAt  string `json:"created_at"`
+			DisplayAt  string `json:"display_at"`
+			ID         string `json:"id"`
+			IncidentID string `json:"incident_id"`
+			Status     string `json:"status"`
+			UpdatedAt  string `json:"updated_at"`
+		} `json:"incident_updates"`
+		MonitoringAt any    `json:"monitoring_at"`
+		Name         string `json:"name"`
+		PageID       string `json:"page_id"`
+		ResolvedAt   any    `json:"resolved_at"`
+		Shortlink    string `json:"shortlink"`
+		Status       string `json:"status"`
+		UpdatedAt    string `json:"updated_at"`
+	} `json:"incidents"`
+}
+
 func main() {
 
 	// TODO move to interface
@@ -64,6 +94,10 @@ func main() {
 	// CF Status
 	cfStatus := getCfStatus("https://www.cloudflarestatus.com/api/v2/status.json")
 	fmt.Println(cfStatus.Status.Indicator)
+
+	// CF Unresolve
+	cfUnresolve := getCfUnresolve("https://www.cloudflarestatus.com/api/v2/incidents/unresolved.json")
+	fmt.Println(cfUnresolve)
 
 }
 
@@ -110,5 +144,28 @@ func getCfStatus(url string) CfStatus {
 	}
 
 	return cfstatus
+
+}
+
+func getCfUnresolve(url string) CfUnresolve {
+
+	res, err := http.Get(url)
+
+	if err != nil {
+
+		log.Fatal(err)
+	}
+
+	defer res.Body.Close()
+
+	var cfunresolve CfUnresolve
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	if err := json.Unmarshal(body, &cfunresolve); err != nil {
+		fmt.Println("Failed to unmarshal JSON")
+	}
+
+	return cfunresolve
 
 }

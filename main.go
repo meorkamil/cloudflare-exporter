@@ -79,7 +79,7 @@ type CfUnresolve struct {
 	} `json:"incidents"`
 }
 
-type CfUpcomingSchedules struct {
+type CfSchedules struct {
 	Page struct {
 		ID        string    `json:"id"`
 		Name      string    `json:"name"`
@@ -157,10 +157,10 @@ func main() {
 	cfUnresolve := getCfUnresolve("https://www.cloudflarestatus.com/api/v2/incidents/unresolved.json")
 	fmt.Println(cfUnresolve)
 
-	// CF Upcoming Schedules
-	cfUpcomingSchedules := getCfUpcomingSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
+	// CF Schedules
+	cfSchedules := getCfSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
 
-	for _, schedules := range cfUpcomingSchedules.ScheduledMaintenances {
+	for _, schedules := range cfSchedules.ScheduledMaintenances {
 
 		for _, incidentupdates := range schedules.IncidentUpdates {
 			fmt.Printf("%s | %s \n", incidentupdates.Body, incidentupdates.Status)
@@ -238,7 +238,7 @@ func getCfUnresolve(url string) CfUnresolve {
 
 }
 
-func getCfUpcomingSchedules(url string) CfUpcomingSchedules {
+func getCfSchedules(url string) CfSchedules {
 
 	res, err := http.Get(url)
 
@@ -250,13 +250,13 @@ func getCfUpcomingSchedules(url string) CfUpcomingSchedules {
 
 	defer res.Body.Close()
 
-	var cfupcomingschedules CfUpcomingSchedules
+	var cfschedules CfSchedules
 
 	body, err := ioutil.ReadAll(res.Body)
 
-	if err := json.Unmarshal(body, &cfupcomingschedules); err != nil {
+	if err := json.Unmarshal(body, &cfschedules); err != nil {
 		fmt.Println("Failed to unmarshal JSON")
 	}
 
-	return cfupcomingschedules
+	return cfschedules
 }

@@ -6,7 +6,6 @@ import (
 
 func main() {
 
-	fetchMetrics()
 }
 
 func fetchMetrics() {

@@ -1,70 +1,45 @@
 package main
 
 import (
+	"cloudflare-status/api"
+	"cloudflare-status/models"
 	"fmt"
-	"log"
-	"net/http"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
 
-	//fetchMetrics()
-	// Create a non-global registry.
-	reg := prometheus.NewRegistry()
+	summaryPayload := api.GetAPI("https://www.cloudflarestatus.com/api/v2/status.json")
+	componentsPayload := api.GetAPI("https://www.cloudflarestatus.com/api/v2/components.json")
+	incidentsPayload := api.GetAPI("https://www.cloudflarestatus.com/api/v2/incidents.json")
 
-	// Create new metrics and register them using the custom registry.
-	m := NewMetrics(reg)
-	// Set values for the new created metrics.
-	m.cfStatusMetric.Set(65)
+	var summary models.Summary
+	var components models.Components
+	var incidents models.Incidents
 
-	// Expose metrics and custom registry via an HTTP server
-	// using the HandleFor function. "/metrics" is the usual endpoint for that.
-	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg}))
-	log.Fatal(http.ListenAndServe(":50001", nil))
+	api.UnmarshalJson(summaryPayload, &summary)
+	api.UnmarshalJson(componentsPayload, &components)
+	api.UnmarshalJson(incidentsPayload, &incidents)
 
-}
+	switch summary.Status.Indicator {
+	case "minor":
+		fmt.Println("cloudflare_exporter_summary{status='minor'}1")
+	case "major":
+		fmt.Println("cloudflare_exporter_summary{status='major'}2")
+	default:
+		fmt.Println("cloudflare_exporter_summary{status='okay'}0")
+	}
 
-func fetchMetrics() {
-
-	// CF Summary
-	dataComponents := getCfComponents("https://www.cloudflarestatus.com/api/v2/summary.json")
-
-	for _, component := range dataComponents.Components {
-
-		if component.Status != "operational" {
-			fmt.Printf("cf_components_status{componet='%s'}0\n", component.Name)
+	for _, s := range components.Components {
+		if s.Status != "operational" {
+			fmt.Printf("cloudflare_exporter_component{name='%s'}1\n", s.Name)
 		} else {
-			fmt.Printf("cf_components_status{componet='%s'}1\n", component.Name)
+			fmt.Printf("cloudflare_exporter_component{name='%s'}0\n", s.Name)
 		}
 	}
 
-	// CF Status
-	cfStatus := getCfStatus("https://www.cloudflarestatus.com/api/v2/status.json")
-
-	if cfStatus.Status.Indicator == "minor" {
-		fmt.Printf("cf_status{='https://www.cloudflarestatus.com/api/v2/status.json'}2\n")
-	} else if cfStatus.Status.Indicator == "major" {
-		fmt.Printf("cf_status{='https://www.cloudflarestatus.com/api/v2/status.json'}1\n")
-	} else if cfStatus.Status.Indicator == "crtical" {
-		fmt.Printf("cf_status{='https://www.cloudflarestatus.com/api/v2/status.json'}0\n")
-	} else {
-		fmt.Printf("cf_status{='https://www.cloudflarestatus.com/api/v2/status.json'}3\n")
-	}
-
-	// CF Unresolve
-	cfUnresolve := getCfUnresolve("https://www.cloudflarestatus.com/api/v2/incidents/unresolved.json")
-	fmt.Println(cfUnresolve)
-
-	// CF Schedules
-	cfSchedules := getCfSchedules("https://www.cloudflarestatus.com/api/v2/scheduled-maintenances/upcoming.json")
-
-	for _, schedules := range cfSchedules.ScheduledMaintenances {
-
-		for _, incidentupdates := range schedules.IncidentUpdates {
-			fmt.Printf("cf_schedules{descripton='%s'}1 \n", incidentupdates.Body)
+	for _, s := range incidents.Incidents {
+		if s.Status != "resolved" {
+			fmt.Printf("cloudflare_exporter_incident{name='%s', status='%s'}1\n", s.Name, s.Status)
 		}
 	}
 

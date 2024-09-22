@@ -6,6 +6,7 @@ build:
 
 run: build
 	./bin/${EXPORTER_NAME}
+	#docker run --rm -it --entrypoint /app/${EXPORTER_NAME} -v "$(pwd)/bin:/app" golang:1.23.0-alpine3.19
 
 clean:
 	rm -rf ./bin

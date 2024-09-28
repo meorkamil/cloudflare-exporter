@@ -1,5 +1,5 @@
 EXPORTER_NAME=cloudflare-exporter
-VERSION=v1.0.0
+VERSION=v1.0.1
 BUILD_DIR=build
 
 build:

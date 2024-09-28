@@ -93,7 +93,3 @@ type Incidents struct {
 		ReminderIntervals interface{} `json:"reminder_intervals"`
 	} `json:"incidents"`
 }
-
-type PromConf struct {
-	Port int
-}

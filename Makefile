@@ -1,9 +1,11 @@
 EXPORTER_NAME=cloudflare-exporter
-VERSION=v1.0.1
+CMD_DIR=cmd
+VERSION=v1.2.0
 BUILD_DIR=build
 
 build:
-	go build -C cmd  -o ../${BUILD_DIR}/${EXPORTER_NAME}
+	go build -C ${CMD_DIR}/${EXPORTER_NAME}  -o ../../${BUILD_DIR}/${EXPORTER_NAME}
+	tar -czf ${BUILD_DIR}/${EXPORTER_NAME}-${VERSION}.tar.gz ${BUILD_DIR}/${EXPORTER_NAME}
 
 run: build
 	./${BUILD_DIR}/${EXPORTER_NAME}

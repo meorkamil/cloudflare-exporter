@@ -1,8 +1,8 @@
 package main
 
 import (
-	"cloudflare-status/cloudflare"
-	"cloudflare-status/metrics"
+	"cloudflare-status/internal/cloudflare"
+	"cloudflare-status/internal/metrics"
 	"log"
 	"net/http"
 

@@ -1,8 +1,8 @@
 package cloudflare
 
 import (
-	"cloudflare-status/api"
-	"cloudflare-status/models"
+	"cloudflare-status/internal/api"
+	"cloudflare-status/internal/models"
 )
 
 func CfSummaries() float64 {

@@ -1,12 +1,12 @@
 EXPORTER_NAME=cloudflare-exporter
 VERSION=v1.0.0
+BUILD_DIR=build
 
 build:
-	go build -o bin/${EXPORTER_NAME}
+	go build -C cmd  -o ../${BUILD_DIR}/${EXPORTER_NAME}
 
 run: build
-	./bin/${EXPORTER_NAME}
-	#docker run --rm -it --entrypoint /app/${EXPORTER_NAME} -v "$(pwd)/bin:/app" golang:1.23.0-alpine3.19
+	./${BUILD_DIR}/${EXPORTER_NAME}
 
 clean:
-	rm -rf ./bin
+	rm -rf ${BUILD_DIR}

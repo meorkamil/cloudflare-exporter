@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"cloudflare-status/internal/cloudflare"
+	"cloudflare-status/internal/models"
 	"log"
 	"time"
 
@@ -33,32 +34,44 @@ var (
 )
 
 func RecordMetrics() {
+
+	sumchan := make(chan float64)
+	indchan := make(chan models.Incidents)
+	comchan := make(chan models.Components)
+	cf := cloudflare.NewCloudFlare("https://www.cloudflarestatus.com/api/v2")
+
 	go func() {
 		for {
-			incidents := cloudflare.CfIncidents()
-			components := cloudflare.CfComponents()
-			CfSumMetric.Set(cloudflare.CfSummaries())
+			go cf.CfSummaries(sumchan)
+			go cf.CfIncidents(indchan)
+			go cf.CfComponents(comchan)
 
-			for _, s := range components.Components {
+			select {
+			case v := <-sumchan:
+				log.Println("cloudflare summary:", v)
+				CfSumMetric.Set(v)
+			case v := <-indchan:
+				for _, s := range v.Incidents {
+					log.Println("cloudflare incident:", s.Name)
 
-				log.Println("cloudflare component", s.Name)
-
-				if s.Status != "operational" {
-					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
-				} else {
-					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
+					if s.Status != "resolved" {
+						CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
+					} else {
+						CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
+					}
 				}
-			}
+			case v := <-comchan:
+				for _, s := range v.Components {
 
-			for _, s := range incidents.Incidents {
+					log.Println("cloudflare component:", s.Name)
 
-				log.Println("cloudflare incident:", s.Name)
-
-				if s.Status != "resolved" {
-					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
-				} else {
-					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
+					if s.Status != "operational" {
+						CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
+					} else {
+						CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
+					}
 				}
+
 			}
 
 			time.Sleep(5 * time.Second)

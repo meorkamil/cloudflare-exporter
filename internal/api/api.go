@@ -7,10 +7,8 @@ import (
 	"net/http"
 )
 
-func GetAPI(url string) []byte {
-
+func GetAPI(url string) ([]byte, error) {
 	resp, err := http.Get(url)
-
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -20,14 +18,13 @@ func GetAPI(url string) []byte {
 		log.Fatalln(err)
 	}
 
-	return body
-
+	return body, nil
 }
 
 func UnmarshalJson(c []byte, s interface{}) error {
-
 	if err := json.Unmarshal(c, s); err != nil {
 		log.Fatalln(err)
 	}
+
 	return nil
 }

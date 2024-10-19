@@ -4,7 +4,6 @@ WORKDIR /app
 RUN mkdir /build
 COPY . /build/
 RUN cd /build && rm go* && \
-	go mod init cloudflare-status && go mod tidy && \
 	apk add make && \
 	make build && cp /build/bin/cloudflare-exporter /app/ && \
 	apk del make && \

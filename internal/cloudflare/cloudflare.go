@@ -3,47 +3,60 @@ package cloudflare
 import (
 	"cloudflare-status/internal/api"
 	"cloudflare-status/internal/models"
+	"log"
 )
 
-func CfSummaries() float64 {
+type CfConfig struct {
+	endpoint string
+}
 
-	summaryPayload := api.GetAPI("https://www.cloudflarestatus.com/api/v2/status.json")
+func NewCloudFlare(e string) *CfConfig {
+	return &CfConfig{
+		endpoint: e,
+	}
+}
+
+func (c CfConfig) CfSummaries(ch chan<- float64) {
+	summaryPayload, err := api.GetAPI(c.endpoint + "/status.json")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	var summary models.Summary
-
 	api.UnmarshalJson(summaryPayload, &summary)
 
 	switch summary.Status.Indicator {
 	case "minor":
-		return 1
+		ch <- 1
 	case "major":
-		return 2
+		ch <- 2
 	default:
-		return 0
+		ch <- 0
+	}
+}
+func (c CfConfig) CfIncidents(ch chan<- models.Incidents) {
+	incidentsPayload, err := api.GetAPI(c.endpoint + "/incidents.json")
+	if err != nil {
+		log.Fatal(err)
+		return
 	}
 
-}
-
-func CfComponents() *models.Components {
-
-	componentsPayload := api.GetAPI("https://www.cloudflarestatus.com/api/v2/components.json")
-
-	var components models.Components
-
-	api.UnmarshalJson(componentsPayload, &components)
-
-	return &components
-
-}
-
-func CfIncidents() *models.Incidents {
-
-	incidentsPayload := api.GetAPI("https://www.cloudflarestatus.com/api/v2/incidents.json")
-
 	var incidents models.Incidents
-
 	api.UnmarshalJson(incidentsPayload, &incidents)
 
-	return &incidents
+	ch <- incidents
+}
 
+func (c CfConfig) CfComponents(ch chan<- models.Components) {
+	componentsPayload, err := api.GetAPI(c.endpoint + "/components.json")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	var components models.Components
+	api.UnmarshalJson(componentsPayload, &components)
+
+	ch <- components
 }

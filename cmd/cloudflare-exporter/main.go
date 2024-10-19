@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	metrics.RecordMetrics()
 
 	http.Handle("/metrics", promhttp.Handler())

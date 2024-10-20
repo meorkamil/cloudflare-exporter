@@ -3,7 +3,6 @@ package metrics
 import (
 	"cloudflare-status/internal/cloudflare"
 	"cloudflare-status/internal/models"
-	"log"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -11,10 +10,6 @@ import (
 )
 
 var (
-	OpsProcessed = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "myapp_processed_ops_total",
-		Help: "The total number of processed events",
-	})
 	CfSumMetric = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "cloudflare_exporter_summary",
 		Help: "Current cloudflare summary",
@@ -34,47 +29,40 @@ var (
 )
 
 func RecordMetrics() {
-
-	sumchan := make(chan float64)
-	indchan := make(chan models.Incidents)
-	comchan := make(chan models.Components)
 	cf := cloudflare.NewCloudFlare("https://www.cloudflarestatus.com/api/v2")
+	for {
+		sumchan := make(chan float64, 1)
+		indchan := make(chan models.Incidents, 1)
+		comchan := make(chan models.Components, 1)
 
-	go func() {
-		for {
-			go cf.CfSummaries(sumchan)
-			go cf.CfIncidents(indchan)
-			go cf.CfComponents(comchan)
+		go cf.CfSummaries(sumchan)
+		go cf.CfIncidents(indchan)
+		go cf.CfComponents(comchan)
 
-			select {
-			case v := <-sumchan:
-				log.Println("cloudflare summary:", v)
-				CfSumMetric.Set(v)
-			case v := <-indchan:
-				for _, s := range v.Incidents {
-					log.Println("cloudflare incident:", s.Name)
-
-					if s.Status != "resolved" {
-						CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
-					} else {
-						CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
-					}
+		select {
+		case v := <-sumchan:
+			CfSumMetric.Set(v)
+			close(sumchan)
+		case v := <-indchan:
+			for _, s := range v.Incidents {
+				if s.Status != "resolved" {
+					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
+				} else {
+					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
 				}
-			case v := <-comchan:
-				for _, s := range v.Components {
-
-					log.Println("cloudflare component:", s.Name)
-
-					if s.Status != "operational" {
-						CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
-					} else {
-						CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
-					}
-				}
-
 			}
-
-			time.Sleep(5 * time.Second)
+			close(indchan)
+		case v := <-comchan:
+			for _, s := range v.Components {
+				if s.Status != "operational" {
+					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
+				} else {
+					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
+				}
+			}
+			close(comchan)
 		}
-	}()
+
+		time.Sleep(5 * time.Second)
+	}
 }

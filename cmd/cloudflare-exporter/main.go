@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	metrics.RecordMetrics()
-
+	go metrics.RecordMetrics()
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":5001", nil)
 }

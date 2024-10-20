@@ -47,3 +47,6 @@ cloudflare_exporter_component{name="Marketing Site"} 0
 # Summary
 cloudflare_exporter_summary 1
 ```
+# Dashboard
+![image](https://github.com/user-attachments/assets/7f46223e-c69d-49ed-87dc-4822e94a8e85)
+

@@ -19,12 +19,15 @@ func NewCloudFlare(e string) *CfConfig {
 func (c CfConfig) CfSummaries(ch chan<- float64) {
 	summaryPayload, err := api.GetAPI(c.endpoint + "/status.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("ERROR:", err)
 		return
 	}
 
 	var summary models.Summary
-	api.UnmarshalJson(summaryPayload, &summary)
+	if err := api.UnmarshalJson(summaryPayload, &summary); err != nil {
+		log.Fatal("ERROR:", err)
+		return
+	}
 
 	switch summary.Status.Indicator {
 	case "minor":
@@ -38,12 +41,15 @@ func (c CfConfig) CfSummaries(ch chan<- float64) {
 func (c CfConfig) CfIncidents(ch chan<- models.Incidents) {
 	incidentsPayload, err := api.GetAPI(c.endpoint + "/incidents.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("ERROR:", err)
 		return
 	}
 
 	var incidents models.Incidents
-	api.UnmarshalJson(incidentsPayload, &incidents)
+	if err := api.UnmarshalJson(incidentsPayload, &incidents); err != nil {
+		log.Fatal("ERROR:", err)
+		return
+	}
 
 	ch <- incidents
 }
@@ -51,12 +57,15 @@ func (c CfConfig) CfIncidents(ch chan<- models.Incidents) {
 func (c CfConfig) CfComponents(ch chan<- models.Components) {
 	componentsPayload, err := api.GetAPI(c.endpoint + "/components.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("ERROR:", err)
 		return
 	}
 
 	var components models.Components
-	api.UnmarshalJson(componentsPayload, &components)
+	if err := api.UnmarshalJson(componentsPayload, &components); err != nil {
+		log.Fatal("ERROR:", err)
+		return
+	}
 
 	ch <- components
 }

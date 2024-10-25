@@ -6,4 +6,4 @@ RUN cd /app && \
 	apk add make && \
 	make build && \
 	rm -vrf /var/cache/apk/* rm -rf /go/pkg
-ENTRYPOINT /app/build/cloudflare-exporter
+ENTRYPOINT ["/app/build/cloudflare-exporter"]

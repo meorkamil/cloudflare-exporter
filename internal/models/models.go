@@ -4,6 +4,17 @@ import (
 	"time"
 )
 
+type Config struct {
+	Exporter struct {
+		API      string `yaml:"api"`
+		Timeout  int    `yaml:"timeout"`
+		Interval int    `yaml:"interval"`
+		Listen   string `yaml:"listen"`
+		Uri      string `yaml:"uri"`
+	} `yaml:"exporter"`
+	Version string
+}
+
 type Summary struct {
 	Page struct {
 		ID        string    `json:"id"`

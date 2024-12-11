@@ -28,8 +28,24 @@ var (
 	)
 )
 
-func RecordMetrics() {
-	cf := cloudflare.NewCloudFlare("https://www.cloudflarestatus.com/api/v2")
+type Metrics struct {
+	Timeout   int
+	Interval  int
+	API       string
+	ChanOpen  chan bool
+	ChanClose chan bool
+}
+
+func NewMetrics(t int, i int, a string) (*Metrics, error) {
+	return &Metrics{
+		Timeout:  t,
+		Interval: i,
+		API:      a,
+	}, nil
+}
+
+func (m *Metrics) RecordMetrics() {
+	cf := cloudflare.NewCloudFlare(m.API)
 	for {
 		sumchan := make(chan float64, 1)
 		indchan := make(chan models.Incidents, 1)
@@ -73,6 +89,6 @@ func RecordMetrics() {
 			close(comchan)
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(time.Duration(m.Interval) * time.Second)
 	}
 }

@@ -1,0 +1,6 @@
+exporter:
+  api: "https://www.cloudflarestatus.com/api/v2"
+  timeout: 3
+  interval: 5
+  listen: ":5001"
+  uri: "/metrics"

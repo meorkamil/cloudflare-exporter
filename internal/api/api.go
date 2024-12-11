@@ -3,8 +3,9 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -22,15 +23,15 @@ func GetAPI(url string) ([]byte, error) {
 	client := http.DefaultClient
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal("ERROR: HTTP Request ", err)
+		return nil, fmt.Errorf("request %s", err)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal("ERROR:", err)
+		return nil, fmt.Errorf("http body %s", err)
 	}
 
-	log.Println("INFO:", resp.StatusCode, url)
+	slog.Info(fmt.Sprintf("%s - %d", url, resp.StatusCode))
 
 	defer resp.Body.Close()
 
@@ -39,7 +40,7 @@ func GetAPI(url string) ([]byte, error) {
 
 func UnmarshalJson(c []byte, s interface{}) error {
 	if err := json.Unmarshal(c, s); err != nil {
-		log.Fatal("ERROR:", err)
+		return fmt.Errorf("json %s", err)
 	}
 
 	return nil

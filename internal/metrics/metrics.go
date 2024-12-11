@@ -45,18 +45,28 @@ func RecordMetrics() {
 			close(sumchan)
 		case v := <-indchan:
 			for _, s := range v.Incidents {
-				if s.Status != "resolved" {
+				switch {
+				case s.Status == "investigating":
+					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(2)
+				case s.Status == "identified":
+					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(2)
+				case s.Status == "monitoring":
 					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
-				} else {
+				case s.Status == "resolved":
 					CfIncMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
 				}
 			}
 			close(indchan)
 		case v := <-comchan:
 			for _, s := range v.Components {
-				if s.Status != "operational" {
+				switch {
+				case s.Status == "degraded_performance":
 					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(1)
-				} else {
+				case s.Status == "partial_outage":
+					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(2)
+				case s.Status == "major_outage":
+					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(3)
+				case s.Status == "operational":
 					CfComMetric.With(prometheus.Labels{"name": s.Name}).Set(0)
 				}
 			}

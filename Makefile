@@ -1,6 +1,6 @@
 EXPORTER_NAME=cloudflare-exporter
 CMD_DIR=cmd
-VERSION=v1.2.2
+VERSION=v1.2.3
 BUILD_DIR=build
 
 build:
